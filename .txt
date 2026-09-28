@@ -1,0 +1,264 @@
+FOLDER STRUCTURE
+📦 father-care-bakery
+ ┣ 📂 app
+ ┃ ┣ 📂 Console
+ ┃ ┃ ┗ 📂 Commands           (custom artisan commands)
+ ┃ ┣ 📂 Contracts            (interfaces for services/repositories)
+ ┃ ┃ ┣ 📂 Repositories
+ ┃ ┃ ┗ 📂 Services
+ ┃ ┣ 📂 Enums                (constant-like classes with static values)
+ ┃ ┃ ┣ 📜 OrderStatus.php
+ ┃ ┃ ┣ 📜 PaymentStatus.php
+ ┃ ┃ ┣ 📜 UserRole.php
+ ┃ ┃ ┗ 📜 DeliveryType.php
+ ┃ ┣ 📂 Exceptions           (custom exceptions)
+ ┃ ┣ 📂 Helpers              (global helper functions)
+ ┃ ┃ ┗ 📜 helpers.php
+ ┃ ┣ 📂 Http
+ ┃ ┃ ┣ 📂 Controllers
+ ┃ ┃ ┃ ┣ 📂 Admin            (all admin backend controllers)
+ ┃ ┃ ┃ ┃ ┣ 📜 DashboardController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 ProductController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 CategoryController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 OrderController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 InventoryController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 ReportController.php
+ ┃ ┃ ┃ ┃ ┗ 📜 CustomerController.php
+ ┃ ┃ ┃ ┣ 📂 Customer         (frontend storefront controllers)
+ ┃ ┃ ┃ ┃ ┣ 📜 HomeController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 ProductController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 CartController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 CheckoutController.php
+ ┃ ┃ ┃ ┃ ┣ 📜 OrderController.php
+ ┃ ┃ ┃ ┃ ┗ 📜 ProfileController.php
+ ┃ ┃ ┃ ┗ 📂 Api              (for future mobile apps – optional)
+ ┃ ┃ ┣ 📂 Middleware
+ ┃ ┃ ┃ ┣ 📜 RoleMiddleware.php
+ ┃ ┃ ┃ ┗ 📜 EnsureEmailIsVerified.php (if needed)
+ ┃ ┃ ┣ 📂 Requests           (form validation requests)
+ ┃ ┃ ┃ ┣ 📂 Admin
+ ┃ ┃ ┃ ┃ ┣ 📜 ProductRequest.php
+ ┃ ┃ ┃ ┃ ┣ 📜 OrderStatusRequest.php
+ ┃ ┃ ┃ ┃ ┗ 📜 ReportRequest.php
+ ┃ ┃ ┃ ┗ 📂 Customer
+ ┃ ┃ ┃   ┣ 📜 CheckoutRequest.php
+ ┃ ┃ ┃   ┗ 📜 CartRequest.php
+ ┃ ┃ ┗ 📂 Resources
+ ┃ ┃   ┗ 📂 Views            (Blade templates)
+ ┃ ┃     ┣ 📂 layouts        (master layout)
+ ┃ ┃     ┣ 📂 admin          (all admin panels)
+ ┃ ┃     ┃ ┣ 📂 dashboard
+ ┃ ┃     ┃ ┣ 📂 products
+ ┃ ┃     ┃ ┣ 📂 categories
+ ┃ ┃     ┃ ┣ 📂 orders
+ ┃ ┃     ┃ ┣ 📂 inventory
+ ┃ ┃     ┃ ┣ 📂 customers
+ ┃ ┃     ┃ ┗ 📂 reports
+ ┃ ┃     ┗ 📂 customer       (frontend pages)
+ ┃ ┃       ┣ 📂 home
+ ┃ ┃       ┣ 📂 products
+ ┃ ┃       ┣ 📂 cart
+ ┃ ┃       ┣ 📂 checkout
+ ┃ ┃       ┗ 📂 orders
+ ┃ ┣ 📂 Models               (Eloquent models)
+ ┃ ┃ ┣ 📜 User.php
+ ┃ ┃ ┣ 📜 Category.php
+ ┃ ┃ ┣ 📜 Product.php
+ ┃ ┃ ┣ 📜 ProductVariant.php  (optional)
+ ┃ ┃ ┣ 📜 Order.php
+ ┃ ┃ ┣ 📜 OrderItem.php
+ ┃ ┃ ┣ 📜 InventoryMovement.php
+ ┃ ┃ ┣ 📜 Payment.php        (optional)
+ ┃ ┃ ┗ 📜 Review.php         (optional)
+ ┃ ┣ 📂 Repositories         (data access layer – queries go here)
+ ┃ ┃ ┣ 📜 BaseRepository.php  (abstract with common CRUD)
+ ┃ ┃ ┣ 📜 ProductRepository.php
+ ┃ ┃ ┣ 📜 CategoryRepository.php
+ ┃ ┃ ┣ 📜 OrderRepository.php
+ ┃ ┃ ┗ 📜 CustomerRepository.php
+ ┃ ┣ 📂 Services             (business logic layer)
+ ┃ ┃ ┣ 📜 BaseService.php     (abstract with common logic)
+ ┃ ┃ ┣ 📜 ProductService.php
+ ┃ ┃ ┣ 📜 OrderService.php
+ ┃ ┃ ┣ 📜 InventoryService.php
+ ┃ ┃ ┣ 📜 ReportService.php
+ ┃ ┃ ┗ 📜 PaymentService.php  (if integrating gateway)
+ ┃ ┣ 📂 Traits               (reusable methods)
+ ┃ ┃ ┣ 📜 ApiResponseTrait.php
+ ┃ ┃ ┗ 📜 ImageUploadTrait.php
+ ┃ ┣ 📂 Events               (order placed, low stock, etc.)
+ ┃ ┃ ┣ 📜 OrderPlaced.php
+ ┃ ┃ ┗ 📜 StockLow.php
+ ┃ ┣ 📂 Listeners            (event listeners)
+ ┃ ┃ ┣ 📜 SendOrderConfirmation.php
+ ┃ ┃ ┗ 📜 SendLowStockAlert.php
+ ┃ ┣ 📂 Notifications        (mail/sms/database notifications)
+ ┃ ┃ ┣ 📜 OrderStatusUpdated.php
+ ┃ ┃ ┗ 📜 WelcomeCustomer.php
+ ┃ ┗ 📂 Jobs                 (queueable jobs)
+ ┃   ┣ 📜 GenerateSalesReport.php
+ ┃   ┗ 📜 ProcessBulkInventory.php
+ ┣ 📂 bootstrap
+ ┣ 📂 config
+ ┣ 📂 database
+ ┃ ┣ 📂 factories
+ ┃ ┣ 📂 migrations
+ ┃ ┗ 📂 seeders
+ ┣ 📂 public
+ ┣ 📂 resources
+ ┃ ┣ 📂 css
+ ┃ ┣ 📂 js
+ ┃ ┗ 📂 views                (we already linked above, but this is default)
+ ┣ 📂 routes
+ ┃ ┣ 📜 web.php
+ ┃ ┣ 📜 api.php
+ ┃ ┗ 📜 admin.php            (dedicated admin route file – optional)
+ ┣ 📂 storage
+ ┣ 📂 tests
+ ┣ 📜 .env
+ ┗ 📜 artisan
+
+
+
+CREATING ALL FOLDERS AND SUBFILES
+# Create all directories with -Force (acts like mkdir -p)
+$dirs = @(
+    "app/Contracts/Repositories",
+    "app/Contracts/Services",
+    "app/Enums",
+    "app/Helpers",
+    "app/Http/Controllers/Admin",
+    "app/Http/Controllers/Customer",
+    "app/Http/Controllers/Api",
+    "app/Http/Middleware",
+    "app/Http/Requests/Admin",
+    "app/Http/Requests/Customer",
+    "app/Models",
+    "app/Repositories",
+    "app/Services",
+    "app/Traits",
+    "app/Events",
+    "app/Listeners",
+    "app/Notifications",
+    "app/Jobs",
+    "resources/views/layouts",
+    "resources/views/admin/dashboard",
+    "resources/views/admin/products",
+    "resources/views/admin/categories",
+    "resources/views/admin/orders",
+    "resources/views/admin/inventory",
+    "resources/views/admin/customers",
+    "resources/views/admin/reports",
+    "resources/views/customer/home",
+    "resources/views/customer/products",
+    "resources/views/customer/cart",
+    "resources/views/customer/checkout",
+    "resources/views/customer/orders",
+    "routes"
+)
+
+foreach ($dir in $dirs) {
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+}
+
+# Create stub files (replaces touch)
+$files = @(
+    "app/Helpers/helpers.php",
+    "app/Enums/OrderStatus.php",
+    "app/Enums/UserRole.php",
+    "app/Traits/ApiResponseTrait.php",
+    "app/Traits/ImageUploadTrait.php",
+    "app/Repositories/BaseRepository.php",
+    "app/Services/BaseService.php",
+    "app/Http/Middleware/RoleMiddleware.php"
+)
+
+foreach ($file in $files) {
+    New-Item -ItemType File -Force -Path $file | Out-Null
+}
+
+
+FOR CREATING THE FILES
+
+# Base path
+$base = "resources/views"
+
+# List of files to create
+$files = @(
+    # Layouts
+    "$base/layouts/app.blade.php",
+    "$base/layouts/admin.blade.php",
+    "$base/layouts/customer.blade.php",
+
+    # Admin Dashboard
+    "$base/admin/dashboard/index.blade.php",
+
+    # Admin Categories
+    "$base/admin/categories/index.blade.php",
+    "$base/admin/categories/create.blade.php",
+    "$base/admin/categories/edit.blade.php",
+    "$base/admin/categories/show.blade.php",
+
+    # Admin Customers
+    "$base/admin/customers/index.blade.php",
+    "$base/admin/customers/show.blade.php",
+
+    # Admin Inventory
+    "$base/admin/inventory/index.blade.php",
+    "$base/admin/inventory/movements.blade.php",
+
+    # Admin Orders
+    "$base/admin/orders/index.blade.php",
+    "$base/admin/orders/show.blade.php",
+    "$base/admin/orders/edit.blade.php",
+
+    # Admin Products
+    "$base/admin/products/index.blade.php",
+    "$base/admin/products/create.blade.php",
+    "$base/admin/products/edit.blade.php",
+    "$base/admin/products/show.blade.php",
+
+    # Admin Reports
+    "$base/admin/reports/index.blade.php",
+    "$base/admin/reports/sales.blade.php",
+    "$base/admin/reports/inventory.blade.php",
+
+    # Customer Cart
+    "$base/customer/cart/index.blade.php",
+
+    # Customer Checkout
+    "$base/customer/checkout/index.blade.php",
+
+    # Customer Home
+    "$base/customer/home/index.blade.php",
+
+    # Customer Orders
+    "$base/customer/orders/index.blade.php",
+    "$base/customer/orders/show.blade.php",
+
+    # Customer Products
+    "$base/customer/products/index.blade.php",
+    "$base/customer/products/show.blade.php"
+)
+
+foreach ($file in $files) {
+    # -Force creates the file even if the directory doesn't exist (though they do), and overwrites/creates the file.
+    New-Item -ItemType File -Force -Path $file | Out-Null
+}
+
+Write-Host " All Blade view files have been created successfully!" -ForegroundColor Green
+Write-Host " Total files created: $($files.Count)" -ForegroundColor Yellow
+
+
+
+
+📄 The Specific Stub Files (What they do initially)
+File	               Purpose
+helpers.               php	Holds global functions. Auto‑loaded via composer.json.
+OrderStatus.php	       Defines PENDING, BAKING, READY as native PHP Enums. Gives autocomplete in your IDE.
+UserRole.php	       Defines ADMIN, STAFF, CUSTOMER. Used to restrict access.
+ApiResponseTrait.php   Provides success() and error() methods so every API response looks identical (professional!).
+ImageUploadTrait.php   Centralizes file upload logic. If you change storage from local to S3, you only change it here.
+BaseRepository.php	   Extend this to avoid rewriting find(), create(), update() for every single model.
+BaseService.php	       Extend this for common service logic (e.g., logging activity).
+RoleMiddleware.php	    Checks if Auth::user()->role matches the allowed roles before letting them proceed.

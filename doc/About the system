@@ -1,0 +1,66 @@
+# Father Care Bakery Management System
+
+**A Computerized Web-Based Platform for Automated Operations, Inventory Tracking, and Online Ordering**
+
+This project is a full-stack web application built to digitally transform the manual operations of Father Care Bakery. It replaces paper-based records and phone orders with a centralized, real-time management system, reducing inventory waste, eliminating manual calculation errors, and providing customers with 24/7 access to the bakery catalog.
+
+
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Technology Stack](#technology-stack)
+- [System Architecture & Folder Structure](#system-architecture--folder-structure)
+- [Installation Guide](#installation-guide)
+- [Environment Configuration](#environment-configuration)
+- [Database Seeding & Default Credentials](#database-seeding--default-credentials)
+- [Testing & Usage](#testing--usage)
+- [Contributing & Support](#contributing--support)
+
+
+
+## Overview
+
+Father Care Bakery, located at 4 Watt Street, Uko Ekong (beside the Apostolic Church Nigeria), Ikot Abasi L.G.A, Akwa Ibom State, produces bread, cakes, pastries, and buns for the local community. As the business grows, managing stock, sales, and customer orders manually becomes time-consuming and error-prone.
+
+This system centralizes all bakery workflows into a single web platform. It provides an administrative dashboard for staff to manage products, monitor inventory in real-time, process orders, and generate sales reports. Simultaneously, it offers a responsive online storefront where customers can browse products, view real-time pricing, and place orders for pickup or delivery.
+
+
+
+## Key Features
+
+**Administrative Dashboard**
+
+- Product & Category Management – Add, edit, view, and delete bakery items with pricing and images.
+- Real-Time Inventory Tracking – Monitor stock levels with low-stock alerts and audit trails for every movement.
+- Order Fulfillment Workflow – View and update order statuses (Pending, Confirmed, Baking, Ready, Delivered).
+- Business Analytics – Generate detailed sales, inventory, and profit/loss reports (PDF/Excel export).
+- Customer Management – View order history and total spending per customer.
+- Role-Based Access Control – Separate permissions for Admin, Staff, and Cashier roles.
+
+**Customer Storefront**
+
+- Product Discovery – Browse categorized products with high-resolution images and accurate pricing.
+- Online Ordering – Add items to a persistent cart, choose pickup or delivery, and schedule future order times.
+- Order Tracking – View real-time order status without logging in via a unique tracking link.
+- User Accounts – Quick registration, social login, and a "re-order" feature from past purchases.
+
+
+
+## Technology Stack
+
+- **Backend Framework**: Laravel 13.x (PHP 8.2+)
+- **Frontend**: Blade templates, Alpine.js for reactivity, Bootstrap 5 for responsive design
+- **Database**: MySQL (InnoDB)
+- **Caching & Queues**: Redis (optional, for background job processing)
+- **Real-Time Events**: Laravel Echo + Pusher / Laravel Reverb (for live admin notifications)
+- **File Storage**: Laravel Filesystem (local development; S3-ready for production)
+- **PDF Generation**: Dompdf / Barryvdh/laravel-dompdf
+- **Testing**: PHPUnit / Pest
+
+
+
+## System Architecture & Folder Structure
+
+This project follows the **Repository-Service-Contract** design pattern to strictly separate concerns. This ensures the codebase is highly maintainable, testable, and scalable—key principles for an award-winning solution.
