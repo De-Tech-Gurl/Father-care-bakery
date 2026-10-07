@@ -73,8 +73,8 @@
             </div>
         </div>
 
-        <div class="report-grid row g-4 fade-in fade-in-3">
-            <div class="col-lg-7">
+        <div class="report-grid fade-in fade-in-3">
+            <div class="report-grid__products">
                 <div class="report-panel">
                     <div class="panel-header">
                         <h2><i class="ph ph-star"></i> Top Selling Products</h2>
@@ -115,25 +115,39 @@
                 </div>
             </div>
 
-            <div class="col-lg-5">
+            <div class="report-grid__low-stock">
                 <div class="report-panel report-panel--side">
                     <div class="panel-header">
                         <h2 style="color:var(--brand-choco);"><i class="ph ph-warning" style="color:var(--brand-choco);"></i> Low Stock Attention</h2>
                     </div>
-                    <div class="report-stock-list">
-                        @forelse($lowStock as $product)
-                            <div class="report-stock-item">
-                                <span class="report-stock-item__name">{{ $product->name }}</span>
-                                <span class="chip chip-cancelled">
-                                    {{ $product->stock_quantity }} remaining
-                                </span>
-                            </div>
-                        @empty
-                            <div class="empty-state" style="color:var(--brand-choco);">
-                                <i class="ph ph-check-fat" style="color:var(--brand-choco);"></i>
-                                All inventory quantities are above thresholds!
-                            </div>
-                        @endforelse
+                    <div class="report-table-wrap report-stock-table-wrap">
+                        <table class="saas-table report-stock-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th style="text-align:right;">Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($lowStock as $product)
+                                    <tr>
+                                        <td><strong style="color:var(--brand-ink);">{{ $product->name }}</strong></td>
+                                        <td style="text-align:right;">
+                                            <span class="chip chip-cancelled">{{ $product->stock_quantity }} remaining</span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="empty-state" style="color:var(--brand-choco);">
+                                                <i class="ph ph-check-fat" style="color:var(--brand-choco);"></i>
+                                                All inventory quantities are above thresholds!
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -306,15 +320,14 @@
             .report-grid {
                 display: grid;
                 grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-                gap: 24px;
+                gap: 12px;
                 align-items: stretch;
                 width: 100%;
             }
 
-            .report-grid > .col-lg-5,
-            .report-grid > .col-lg-7 {
+            .report-grid > .report-grid__products,
+            .report-grid > .report-grid__low-stock {
                 min-width: 0;
-                width: 100%;
             }
 
             .report-panel {
@@ -379,64 +392,41 @@
             }
 
             .saas-table th {
-                padding-top: 16px;
-                padding-bottom: 16px;
+                padding-top: 12px;
+                padding-bottom: 12px;
                 background: #efe2d2;
             }
 
-            .report-stock-list {
-                padding: 14px;
-                background: #f8f3ee;
+            .report-grid .saas-table td {
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            .report-stock-table {
+                min-width: 0;
+                table-layout: fixed;
+            }
+
+            .report-stock-table th:first-child,
+            .report-stock-table td:first-child {
+                width: 55%;
+                overflow-wrap: anywhere;
+            }
+
+            .report-stock-table th:last-child,
+            .report-stock-table td:last-child {
+                width: 45%;
+            }
+
+            .report-stock-table th,
+            .report-stock-table td {
+                padding-right: 12px;
+                padding-left: 12px;
+            }
+
+            .report-stock-table-wrap {
                 max-height: 320px;
                 overflow-y: auto;
-            }
-
-            .report-stock-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 14px;
-                padding: 16px 14px;
-                border: 1px solid #e1d2bb;
-                border-radius: 12px;
-                background: rgba(255,255,255,0.5);
-                min-width: 0;
-                width: 100%;
-            }
-
-            .report-stock-item:last-child {
-                border-bottom: none;
-            }
-
-            .report-stock-item__name {
-                flex: 1 1 auto;
-                min-width: 0;
-                max-width: 100%;
-                font-weight: 800;
-                color: var(--brand-ink);
-                font-size: clamp(1.05rem, 1.4vw, 1.45rem);
-                line-height: 1.2;
-                letter-spacing: -.02em;
-                word-break: normal;
-                overflow-wrap: normal;
-                white-space: normal;
-            }
-
-            .report-stock-item .chip {
-                flex-shrink: 0;
-                white-space: nowrap;
-                padding: 8px 12px;
-                border-radius: 999px;
-                font-size: .75rem;
-                font-weight: 700;
-                min-width: 96px;
-                text-align: center;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                background: #f4efe9;
-                border: 1px solid #d9c5a3;
-                color: var(--brand-ink);
             }
 
             @media (max-width: 1200px) {
@@ -448,9 +438,7 @@
             @media (max-width: 991.98px) {
                 .report-filter .row,
                 .report-grid {
-                    display: flex;
-                    flex-direction: column;
-                    grid-template-columns: none;
+                    grid-template-columns: minmax(0, 1fr);
                 }
 
                 .report-kpis {
@@ -459,16 +447,6 @@
 
                 .report-metric {
                     min-height: 120px;
-                }
-
-                .report-stock-item {
-                    flex-direction: row;
-                    align-items: center;
-                    width: 100%;
-                }
-
-                .report-stock-item .chip {
-                    min-width: 0;
                 }
 
                 .report-btn {
