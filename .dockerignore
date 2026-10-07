@@ -1,7 +1,0 @@
-vendor
-node_modules
-.env
-.env.*
-!.env.example
-.git
-storage/logs/*
