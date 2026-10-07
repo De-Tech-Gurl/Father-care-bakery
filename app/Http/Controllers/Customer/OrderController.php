@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\OrderService;
@@ -15,13 +16,22 @@ class OrderController extends Controller
 
     public function index(Request $request): View
     {
-        $orders = $request->user()
-            ->orders()
+        $userOrders = $request->user()->orders();
+        $inProgressStatuses = array_map(
+            fn (OrderStatus $status): string => $status->value,
+            array_filter(OrderStatus::cases(), fn (OrderStatus $status): bool => $status->isOpen()),
+        );
+
+        $inProgressOrderCount = (clone $userOrders)
+            ->whereIn('status', $inProgressStatuses)
+            ->count();
+
+        $orders = $userOrders
             ->with('items')
             ->latest()
             ->paginate(10);
 
-        return view('customer.orders.index', compact('orders'));
+        return view('customer.orders.index', compact('orders', 'inProgressOrderCount'));
     }
 
     public function show(Request $request, Order $order): View

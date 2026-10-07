@@ -54,16 +54,6 @@ class CheckoutRequest extends FormRequest
     {
         $validator->after(function (Validator $validator): void {
             if (
-                $this->input('payment_method') === PaymentMethod::CASH_ON_DELIVERY->value
-                && $this->input('delivery_type') !== DeliveryType::DELIVERY->value
-            ) {
-                $validator->errors()->add(
-                    'payment_method',
-                    'Cash on delivery is only available for home delivery orders.',
-                );
-            }
-
-            if (
                 $this->input('payment_method') === PaymentMethod::BANK_TRANSFER->value
                 && $this->files->has('payment_receipt')
                 && ! $this->file('payment_receipt') instanceof UploadedFile

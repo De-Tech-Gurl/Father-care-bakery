@@ -7,6 +7,7 @@ use App\Enums\InventoryReason;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Events\NotificationRequested;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -26,7 +27,7 @@ class OrderService
      */
     public function place(User $user, array $data): Order
     {
-        return DB::transaction(function () use ($user, $data) {
+        $order = DB::transaction(function () use ($user, $data) {
             $lines = $this->cart->lines();
 
             if ($lines->isEmpty()) {
@@ -37,12 +38,6 @@ class OrderService
 
             $paymentMethod = PaymentMethod::from($data['payment_method']);
             $deliveryType = DeliveryType::from($data['delivery_type']);
-
-            if ($paymentMethod === PaymentMethod::CASH_ON_DELIVERY && $deliveryType !== DeliveryType::DELIVERY) {
-                throw ValidationException::withMessages([
-                    'payment_method' => 'Cash on delivery is only available for home delivery orders.',
-                ]);
-            }
 
             if ($paymentMethod === PaymentMethod::BANK_TRANSFER && blank($data['payment_receipt'] ?? null)) {
                 throw ValidationException::withMessages([
@@ -124,11 +119,39 @@ class OrderService
 
             return $order->load('items.product');
         });
+
+        event(new NotificationRequested(
+            'order.placed',
+            'Order received',
+            'Your order '.$order->order_number.' has been received.',
+            'user',
+            $user->id,
+            route('customer.orders.show', $order),
+            'ph-receipt',
+            ['order_id' => $order->id, 'order_number' => $order->order_number],
+        ));
+
+        event(new NotificationRequested(
+            'order.placed',
+            'New order placed',
+            $order->order_number.' was placed by '.$user->name.'.',
+            'staff',
+            url: route('admin.orders.show', $order),
+            icon: 'ph-receipt',
+            context: ['order_id' => $order->id, 'order_number' => $order->order_number],
+        ));
+
+        return $order;
     }
 
     public function markPaid(Order $order, ?string $reference = null): Order
     {
-        return DB::transaction(function () use ($order, $reference) {
+        if ($order->payment_status === PaymentStatus::PAID) {
+            return $order->fresh(['items.product', 'user']);
+        }
+
+        $previousStatus = $order->status;
+        $paidOrder = DB::transaction(function () use ($order, $reference) {
             if ($order->payment_status === PaymentStatus::PAID) {
                 return $order->fresh(['items.product', 'user']);
             }
@@ -144,6 +167,23 @@ class OrderService
 
             return $order->fresh(['items.product', 'user']);
         });
+
+        event(new NotificationRequested(
+            'payment.received',
+            'Payment received',
+            'Payment for order '.$paidOrder->order_number.' has been received.',
+            'user',
+            $paidOrder->user_id,
+            route('customer.orders.show', $paidOrder),
+            'ph-check-circle',
+            ['order_id' => $paidOrder->id, 'order_number' => $paidOrder->order_number],
+        ));
+
+        if ($previousStatus !== $paidOrder->status) {
+            $this->notifyOrderStatusChanged($paidOrder);
+        }
+
+        return $paidOrder;
     }
 
     public function markPaymentFailed(Order $order): Order
@@ -152,16 +192,65 @@ class OrderService
             return $order;
         }
 
+        if ($order->payment_status === PaymentStatus::FAILED) {
+            return $order->fresh(['items.product', 'user']);
+        }
+
         $order->update([
             'payment_status' => PaymentStatus::FAILED,
         ]);
 
-        return $order->fresh(['items.product', 'user']);
+        $failedOrder = $order->fresh(['items.product', 'user']);
+
+        event(new NotificationRequested(
+            'payment.failed',
+            'Payment was not completed',
+            'Payment for order '.$failedOrder->order_number.' was not completed. You can try again.',
+            'user',
+            $failedOrder->user_id,
+            route('customer.orders.show', $failedOrder),
+            'ph-warning-circle',
+            ['order_id' => $failedOrder->id, 'order_number' => $failedOrder->order_number],
+        ));
+
+        return $failedOrder;
+    }
+
+    public function updatePaymentStatus(Order $order, PaymentStatus $status): Order
+    {
+        if ($status === PaymentStatus::PAID) {
+            return $this->markPaid($order);
+        }
+
+        if ($status === PaymentStatus::FAILED) {
+            return $this->markPaymentFailed($order);
+        }
+
+        if ($order->payment_status === $status) {
+            return $order->fresh(['items.product', 'user']);
+        }
+
+        $order->update(['payment_status' => $status]);
+        $updatedOrder = $order->fresh(['items.product', 'user']);
+
+        event(new NotificationRequested(
+            'payment.status_changed',
+            'Payment status updated',
+            'Payment for order '.$updatedOrder->order_number.' is now '.$status->label().'.',
+            'user',
+            $updatedOrder->user_id,
+            route('customer.orders.show', $updatedOrder),
+            'ph-credit-card',
+            ['order_id' => $updatedOrder->id, 'order_number' => $updatedOrder->order_number, 'payment_status' => $status->value],
+        ));
+
+        return $updatedOrder;
     }
 
     public function updateStatus(Order $order, OrderStatus $status): Order
     {
-        return DB::transaction(function () use ($order, $status) {
+        $previousStatus = $order->status;
+        $updatedOrder = DB::transaction(function () use ($order, $status) {
             if ($status === OrderStatus::CANCELLED && $order->status !== OrderStatus::CANCELLED) {
                 $this->restoreStock($order);
             }
@@ -170,6 +259,12 @@ class OrderService
 
             return $order->fresh(['items.product', 'user']);
         });
+
+        if ($previousStatus !== $updatedOrder->status) {
+            $this->notifyOrderStatusChanged($updatedOrder);
+        }
+
+        return $updatedOrder;
     }
 
     public function cancel(Order $order): Order
@@ -199,6 +294,20 @@ class OrderService
                 $order->order_number,
             );
         }
+    }
+
+    private function notifyOrderStatusChanged(Order $order): void
+    {
+        event(new NotificationRequested(
+            'order.status_changed',
+            'Order status updated',
+            'Order '.$order->order_number.' is now '.$order->status->label().'.',
+            'user',
+            $order->user_id,
+            route('customer.orders.show', $order),
+            'ph-package',
+            ['order_id' => $order->id, 'order_number' => $order->order_number, 'status' => $order->status->value],
+        ));
     }
 
     private function generateOrderNumber(): string

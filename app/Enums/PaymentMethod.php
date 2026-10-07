@@ -24,7 +24,7 @@ enum PaymentMethod: string
         return match ($this) {
             self::BANK_TRANSFER => 'Transfer to our bakery account, then upload your payment receipt to place the order.',
             self::USSD => 'Pay with your bank USSD code via Paystack.',
-            self::CASH_ON_DELIVERY => 'Pay cash when your order is delivered.',
+            self::CASH_ON_DELIVERY => 'Pay cash when your order arrives or when you collect it at the bakery.',
             self::CARD => 'Pay securely with your debit or credit card via Paystack.',
         };
     }

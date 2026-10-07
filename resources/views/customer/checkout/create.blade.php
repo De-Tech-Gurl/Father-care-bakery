@@ -48,8 +48,7 @@
                             <div class="payment-grid">
                                 @foreach($paymentMethods as $method)
                                     @php($disabled = $method->usesPaystack() && ! $paystackReady)
-                                    @php($codOnly = $method === \App\Enums\PaymentMethod::CASH_ON_DELIVERY)
-                                    <label class="payment-option {{ $disabled ? 'is-disabled' : '' }}" @if($codOnly) data-cod-option @endif>
+                                    <label class="payment-option {{ $disabled ? 'is-disabled' : '' }}">
                                         <input type="radio" name="payment_method" value="{{ $method->value }}" class="payment-method-input" @checked(old('payment_method', 'bank_transfer') === $method->value) @disabled($disabled) required>
                                         <span class="payment-icon"><i class="ph {{ $method->value === 'bank_transfer' ? 'ph-bank' : ($method->value === 'cash_on_delivery' ? 'ph-money' : ($method->value === 'ussd' ? 'ph-device-mobile' : 'ph-credit-card')) }}"></i></span>
                                         <span class="payment-copy"><strong>{{ $method->label() }}</strong><small>{{ $method->description() }}</small>@if($disabled)<em>Unavailable until Paystack is configured.</em>@endif</span>
@@ -118,7 +117,6 @@
     .payment-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .payment-option.is-disabled { opacity: .5; cursor: not-allowed; }
     .payment-copy em { color: #a13e35; font-size: .68rem; font-style: normal; margin-top: .35rem; }
-    .payment-option.is-cod-hidden { display: none; }
     .checkout-sidebar { position: sticky; top: 1rem; }
     .checkout-summary-card { padding: 1.25rem; }
     .checkout-items { display: grid; gap: .85rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1rem 0; }
@@ -147,13 +145,7 @@
     const receiptWrap = document.getElementById('receipt-wrap');
     const receiptInput = document.getElementById('payment_receipt');
     const paymentInputs = document.querySelectorAll('.payment-method-input');
-    const codOption = document.querySelector('[data-cod-option]');
-    const codInput = codOption ? codOption.querySelector('input') : null;
-
-    function selectedDeliveryType() {
-        const checked = document.querySelector('input[name="delivery_type"]:checked');
-        return checked ? checked.value : null;
-    }
+    const codOption = document.querySelector('input[name="payment_method"][value="cash_on_delivery"]');
 
     function toggleAddress() {
         const delivery = selectedDeliveryType() === 'delivery';
@@ -175,26 +167,9 @@
         }
     }
 
-    function toggleCod() {
-        if (!codOption || !codInput) return;
-        const delivery = selectedDeliveryType() === 'delivery';
-        codOption.classList.toggle('is-cod-hidden', !delivery);
-        if (!delivery && codInput.checked) {
-            const fallback = document.querySelector('input[name="payment_method"]:not(:disabled)');
-            if (fallback) fallback.checked = true;
-            codInput.checked = false;
-        }
-        codInput.disabled = !delivery || codOption.classList.contains('is-disabled');
-        toggleReceipt();
-    }
-
-    deliveryInputs.forEach((input) => input.addEventListener('change', () => {
-        toggleAddress();
-        toggleCod();
-    }));
+    deliveryInputs.forEach((input) => input.addEventListener('change', toggleAddress));
     paymentInputs.forEach((input) => input.addEventListener('change', toggleReceipt));
     toggleAddress();
-    toggleCod();
     toggleReceipt();
 </script>
 @endpush

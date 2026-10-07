@@ -3,6 +3,19 @@
 @section('title', 'Order '.$order->order_number.' - Father Care Bakery')
 
 @section('content')
+    @php
+        $paymentStatusLabel = $order->payment_status->label();
+
+        if (
+            $order->payment_status === \App\Enums\PaymentStatus::AWAITING_PAYMENT
+            && $order->payment_method === \App\Enums\PaymentMethod::CASH_ON_DELIVERY
+        ) {
+            $paymentStatusLabel = $order->delivery_type === \App\Enums\DeliveryType::PICKUP
+                ? 'Pay at pickup'
+                : 'Pay on delivery';
+        }
+    @endphp
+
     <div class="order-detail-page">
         <div class="container py-5">
             <a href="{{ route('customer.orders.index') }}" class="back-link mb-3">
@@ -24,7 +37,7 @@
                     </span>
                     @if($order->payment_status)
                         <span class="payment-status-pill {{ $order->payment_status->isPaid() ? 'is-paid' : 'is-pending' }}">
-                            {{ $order->payment_status->label() }}
+                            {{ $paymentStatusLabel }}
                         </span>
                     @endif
                 </div>
@@ -102,7 +115,10 @@
                             <div class="panel-head">
                                 <h2>Cash on delivery</h2>
                             </div>
-                            <p class="muted-copy mb-0">Please have <strong>₦{{ number_format($order->total_amount, 2) }}</strong> ready when your order arrives.</p>
+                            <p class="muted-copy mb-0">
+                                Please have <strong>₦{{ number_format($order->total_amount, 2) }}</strong> ready
+                                {{ $order->delivery_type === \App\Enums\DeliveryType::PICKUP ? 'when you collect your order at the bakery.' : 'when your order arrives.' }}
+                            </p>
                         </div>
                     @endif
                 </div>

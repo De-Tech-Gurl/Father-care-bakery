@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\DeliveryType;
 use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CheckoutRequest;
@@ -85,7 +86,9 @@ class CheckoutController extends Controller
 
         $message = match ($method) {
             PaymentMethod::BANK_TRANSFER => 'Order placed with your transfer receipt. We will confirm payment shortly.',
-            PaymentMethod::CASH_ON_DELIVERY => 'Order placed. Please pay cash when your order is delivered.',
+            PaymentMethod::CASH_ON_DELIVERY => $order->delivery_type === DeliveryType::PICKUP
+                ? 'Order placed. Please pay cash when you collect it at the bakery.'
+                : 'Order placed. Please pay cash when your order is delivered.',
             default => 'Order placed successfully.',
         };
 

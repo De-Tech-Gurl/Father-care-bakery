@@ -16,7 +16,7 @@
 
             <div class="orders-summary-row mb-4">
                 <div class="orders-summary-card summary-primary"><span class="summary-icon"><i class="ph ph-package"></i></span><span><span class="summary-label">All orders</span><strong>{{ $orders->total() }}</strong></span></div>
-                <div class="orders-summary-card"><span class="summary-icon summary-icon-warm"><i class="ph ph-timer"></i></span><span><span class="summary-label">On the way</span><strong>{{ $orders->getCollection()->filter(fn ($order) => $order->status?->isOpen())->count() }}</strong></span></div>
+                <div class="orders-summary-card"><span class="summary-icon summary-icon-warm"><i class="ph ph-timer"></i></span><span><span class="summary-label">In progress</span><strong>{{ $inProgressOrderCount }}</strong></span></div>
                 <div class="orders-summary-card"><span class="summary-icon summary-icon-green"><i class="ph ph-chart-line-up"></i></span><span><span class="summary-label">This page total</span><strong>₦{{ number_format($orders->sum('total_amount'), 2) }}</strong></span></div>
             </div>
 

@@ -41,7 +41,7 @@
                         </div>
 
                         @foreach($lines as $line)
-                            <article class="cart-item-row">
+                            <article class="cart-item-row" data-stock-quantity="{{ $line['product']->stock_quantity }}">
                                 <div class="cart-item-product">
                                     <div class="cart-item-thumb">
                                         @if($line['product']->imageUrl)
@@ -68,11 +68,11 @@
                                     <form method="POST" action="{{ route('customer.cart.update', $line['product']) }}" class="cart-qty-form" data-cart-update>
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" name="quantity" value="{{ $line['quantity'] - 1 }}" aria-label="Decrease quantity">
+                                        <button type="submit" name="quantity" value="{{ $line['quantity'] - 1 }}" aria-label="Decrease quantity" data-cart-decrease>
                                             <i class="ph ph-minus"></i>
                                         </button>
                                         <span data-cart-quantity>{{ $line['quantity'] }}</span>
-                                        <button type="submit" name="quantity" value="{{ $line['quantity'] + 1 }}" aria-label="Increase quantity" @disabled($line['quantity'] >= $line['product']->stock_quantity)>
+                                        <button type="submit" name="quantity" value="{{ $line['quantity'] + 1 }}" aria-label="Increase quantity" data-cart-increase @disabled($line['quantity'] >= $line['product']->stock_quantity)>
                                             <i class="ph ph-plus"></i>
                                         </button>
                                     </form>
@@ -625,8 +625,11 @@
                 const button = event.submitter;
                 const row = form.closest('.cart-item-row');
                 const quantity = row.querySelector('[data-cart-quantity]');
+                const increaseButton = form.querySelector('[data-cart-increase]');
+                const decreaseButton = form.querySelector('[data-cart-decrease]');
                 const formData = new window.FormData(form);
                 formData.set('quantity', button?.value || quantity.textContent.trim());
+                let availableStock = Number(row.dataset.stockQuantity);
                 form.querySelectorAll('button').forEach((item) => item.disabled = true);
 
                 try {
@@ -643,6 +646,7 @@
                     if (!response.ok) throw new Error('Cart update failed');
 
                     const data = await response.json();
+                    availableStock = Number(data.stock_quantity ?? availableStock);
                     if (data.quantity === 0) {
                         row.remove();
                     } else {
@@ -657,7 +661,11 @@
                     showCartToast('Could not update cart. Please try again.');
                 } finally {
                     if (window.scrollY !== scrollPosition) window.scrollTo(0, scrollPosition);
-                    form.querySelectorAll('button').forEach((item) => item.disabled = false);
+                    if (row.isConnected) {
+                        form.querySelectorAll('button').forEach((item) => item.disabled = false);
+                        if (increaseButton) increaseButton.disabled = Number(quantity.textContent) >= availableStock;
+                        if (decreaseButton) decreaseButton.disabled = Number(quantity.textContent) <= 0;
+                    }
                 }
             });
         });

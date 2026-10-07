@@ -1,0 +1,105 @@
+services:
+  - type: web
+    name: father-care-bakery
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: Father Care Bakery
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        fromService:
+          type: web
+          name: father-care-bakery
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: ASSET_URL
+        fromService:
+          type: web
+          name: father-care-bakery
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: PORT
+        value: "10000"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: father-care-bakery-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: MAIL_MAILER
+        value: resend
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: Father Care Bakery
+      - key: RESEND_API_KEY
+        sync: false
+
+  - type: cron
+    name: father-care-bakery-scheduler
+    runtime: docker
+    plan: 0.5c-512mb
+    dockerfilePath: ./Dockerfile
+    schedule: "* * * * *"
+    dockerCommand: php artisan schedule:run
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        fromService:
+          type: web
+          name: father-care-bakery
+          envVarKey: APP_KEY
+      - key: APP_URL
+        fromService:
+          type: web
+          name: father-care-bakery
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: father-care-bakery-db
+          property: connectionString
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: MAIL_MAILER
+        value: resend
+      - key: MAIL_FROM_ADDRESS
+        fromService:
+          type: web
+          name: father-care-bakery
+          envVarKey: MAIL_FROM_ADDRESS
+      - key: MAIL_FROM_NAME
+        value: Father Care Bakery
+      - key: RESEND_API_KEY
+        fromService:
+          type: web
+          name: father-care-bakery
+          envVarKey: RESEND_API_KEY
+
+databases:
+  - name: father-care-bakery-db
+    databaseName: father_care_bakery
+    user: father_care_bakery
+    plan: 0.1c-256mb

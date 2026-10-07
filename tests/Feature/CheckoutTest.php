@@ -9,9 +9,14 @@ use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Notifications\BakeryNotification;
+use Illuminate\Contracts\Notifications\Dispatcher as NotificationDispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
@@ -125,7 +130,7 @@ class CheckoutTest extends TestCase
         ])->assertSessionHasErrors('delivery_address');
     }
 
-    public function test_cash_on_delivery_requires_home_delivery(): void
+    public function test_customer_can_place_a_pickup_order_with_cash_on_delivery(): void
     {
         $user = User::factory()->create();
         $product = Product::factory()->create();
@@ -135,11 +140,111 @@ class CheckoutTest extends TestCase
             'quantity' => 1,
         ]);
 
-        $this->actingAs($user)->post(route('customer.checkout.store'), [
+        $response = $this->actingAs($user)->post(route('customer.checkout.store'), [
             'delivery_type' => DeliveryType::PICKUP->value,
             'payment_method' => PaymentMethod::CASH_ON_DELIVERY->value,
             'phone' => '08139502961',
-        ])->assertSessionHasErrors('payment_method');
+        ]);
+
+        $order = Order::query()->where('user_id', $user->id)->firstOrFail();
+
+        $response->assertRedirect(route('customer.orders.show', $order))
+            ->assertSessionHas('success', 'Order placed. Please pay cash when you collect it at the bakery.');
+
+        $this->assertSame(DeliveryType::PICKUP, $order->delivery_type);
+        $this->assertSame(PaymentMethod::CASH_ON_DELIVERY, $order->payment_method);
+        $this->assertSame(PaymentStatus::AWAITING_PAYMENT, $order->payment_status);
+
+        $this->actingAs($user)
+            ->get(route('customer.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Pay at pickup')
+            ->assertSee('Pickup at the bakery');
+    }
+
+    public function test_order_placement_notifies_customer_admin_and_staff(): void
+    {
+        $customer = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $staff = User::factory()->staff()->create();
+        $product = Product::factory()->create();
+
+        $this->actingAs($customer)->postJson(route('customer.cart.add'), [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ])->assertOk();
+
+        Notification::fake();
+
+        $this->actingAs($customer)->post(route('customer.checkout.store'), [
+            'delivery_type' => DeliveryType::PICKUP->value,
+            'payment_method' => PaymentMethod::CASH_ON_DELIVERY->value,
+            'phone' => '08139502961',
+        ])->assertRedirect();
+
+        $isOrderPlaced = fn (BakeryNotification $notification): bool => $notification->type === 'order.placed';
+
+        Notification::assertSentTo($customer, BakeryNotification::class, $isOrderPlaced);
+        Notification::assertSentTo($admin, BakeryNotification::class, $isOrderPlaced);
+        Notification::assertSentTo($staff, BakeryNotification::class, $isOrderPlaced);
+    }
+
+    public function test_notification_dispatch_failure_is_logged_without_failing_order_placement(): void
+    {
+        $customer = User::factory()->create();
+        User::factory()->admin()->create();
+        User::factory()->staff()->create();
+        $product = Product::factory()->create();
+
+        $this->actingAs($customer)->postJson(route('customer.cart.add'), [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ])->assertOk();
+
+        $this->instance(NotificationDispatcher::class, new class implements NotificationDispatcher
+        {
+            public function send($notifiables, $notification)
+            {
+                throw new RuntimeException('Mail transport unavailable.');
+            }
+
+            public function sendNow($notifiables, $notification, ?array $channels = null)
+            {
+                throw new RuntimeException('Mail transport unavailable.');
+            }
+        });
+
+        Log::shouldReceive('error')
+            ->times(3)
+            ->with('Unable to queue notification delivery.', \Mockery::type('array'));
+
+        $response = $this->actingAs($customer)->post(route('customer.checkout.store'), [
+            'delivery_type' => DeliveryType::PICKUP->value,
+            'payment_method' => PaymentMethod::CASH_ON_DELIVERY->value,
+            'phone' => '08139502961',
+        ]);
+
+        $order = Order::query()->where('user_id', $customer->id)->firstOrFail();
+
+        $response->assertRedirect(route('customer.orders.show', $order));
+        $this->assertDatabaseCount('orders', 1);
+    }
+
+    public function test_delivery_cash_on_delivery_shows_when_payment_is_due(): void
+    {
+        $user = User::factory()->create();
+        $order = Order::factory()->create([
+            'user_id' => $user->id,
+            'delivery_type' => DeliveryType::DELIVERY,
+            'payment_method' => PaymentMethod::CASH_ON_DELIVERY,
+            'payment_status' => PaymentStatus::AWAITING_PAYMENT,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('customer.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Pay on delivery')
+            ->assertSee('Home delivery');
     }
 
     public function test_checkout_requires_a_payment_method(): void
@@ -156,5 +261,18 @@ class CheckoutTest extends TestCase
             'delivery_type' => DeliveryType::PICKUP->value,
             'phone' => '08139502961',
         ])->assertSessionHasErrors('payment_method');
+    }
+
+    public function test_orders_summary_counts_all_open_orders_as_in_progress(): void
+    {
+        $user = User::factory()->create();
+        Order::factory()->count(11)->for($user)->create();
+        Order::factory()->for($user)->create(['status' => OrderStatus::COMPLETED]);
+
+        $this->actingAs($user)
+            ->get(route('customer.orders.index'))
+            ->assertOk()
+            ->assertSee('<span class="summary-label">In progress</span><strong>11</strong>', false)
+            ->assertDontSee('On the way');
     }
 }

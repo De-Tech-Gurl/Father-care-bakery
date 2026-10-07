@@ -31,6 +31,18 @@ class AuthenticationTest extends TestCase
             ->assertSee('images/logo.png', false);
     }
 
+    public function test_customer_layout_keeps_design_tokens_inside_the_head_style_block(): void
+    {
+        $response = $this->get(route('customer.home'))->assertOk();
+        $html = $response->getContent();
+        $styleEndPosition = strpos($html, '</style>');
+        $designTokensPosition = strpos($html, 'DESIGN TOKENS');
+
+        $this->assertNotFalse($styleEndPosition);
+        $this->assertNotFalse($designTokensPosition);
+        $this->assertLessThan($styleEndPosition, $designTokensPosition);
+    }
+
     public function test_login_page_can_be_rendered(): void
     {
         $this->get(route('login'))->assertOk();

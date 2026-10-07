@@ -279,7 +279,7 @@
             background: var(--header-bg);
             backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--header-border);
-            position: sticky; top: 0; z-index: 50;
+            position: sticky; top: 0; z-index: 1200;
             display: flex; align-items: center;
             padding: 0 32px;
             gap: 16px;
@@ -686,6 +686,7 @@
             .form-control, .form-select { min-height: 44px; font-size: 16px; }
         }
     </style>
+    @include('notifications._styles')
     @stack('styles')
 </head>
 <body>
@@ -762,18 +763,19 @@
                 <h2 id="headerGreeting">Welcome</h2>
                 <p id="headerDate"></p>
             </div>
+            @include('notifications._bell')
             <div class="admin-header-badge">LIVE BAKERY</div>
         </header>
 
         <main class="admin-main">
             @if(session('success'))
-                <div class="alert alert-success fade-in">
+                <div class="alert alert-success fade-in notification-action-toast" role="status">
                     <i class="ph ph-check-circle" style="font-size:1.2rem;"></i>
                     <span>{{ session('success') }}</span>
                 </div>
             @endif
             @if($errors->any())
-                <div class="alert alert-danger fade-in">
+                <div class="alert alert-danger fade-in notification-action-toast" role="alert">
                     <i class="ph ph-warning-circle" style="font-size:1.2rem;"></i>
                     <ul>
                         @foreach($errors->all() as $error)
@@ -827,6 +829,7 @@
             });
         })();
     </script>
+    @include('notifications._polling')
     @stack('scripts')
 </body>
 </html>

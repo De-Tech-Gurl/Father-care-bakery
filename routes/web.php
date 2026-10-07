@@ -11,10 +11,12 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Customer\CartController;
 use App\Http\Controllers\Customer\CheckoutController;
+use App\Http\Controllers\Customer\ContactController;
 use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\ProductController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -28,9 +30,19 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
+Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/', [NotificationController::class, 'index'])->name('index');
+    Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
+    Route::get('/{notification}/open', [NotificationController::class, 'open'])->name('open');
+    Route::patch('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('read');
+    Route::patch('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+    Route::put('/preferences', [NotificationController::class, 'updatePreferences'])->name('preferences.update');
+    Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('destroy');
+});
+
 Route::name('customer.')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/contact', [\App\Http\Controllers\Customer\ContactController::class, 'index'])->name('contact');
+    Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Events\NotificationRequested;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -34,6 +35,16 @@ class LoginRequest extends FormRequest
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
+
+            event(new NotificationRequested(
+                'security.failed_login',
+                'Failed login attempt',
+                'A failed sign-in attempt was made for '.$this->string('email')->toString().'.',
+                'staff',
+                url: route('admin.dashboard'),
+                icon: 'ph-shield-warning',
+                context: ['email' => $this->string('email')->toString(), 'ip' => $this->ip()],
+            ));
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),

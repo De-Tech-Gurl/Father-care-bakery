@@ -45,6 +45,7 @@ class CartController extends Controller
                 'cart_count' => $this->cart->count(),
                 'subtotal' => $this->cart->subtotal(),
                 'quantity' => $this->cart->quantityFor($product->id),
+                'stock_quantity' => $product->stock_quantity,
                 'product_id' => $product->id,
             ]);
         }

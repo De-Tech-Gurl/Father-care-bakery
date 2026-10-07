@@ -51,6 +51,32 @@ class CartTest extends TestCase
         $this->assertSame(3, session('cart')[$product->id]['quantity']);
     }
 
+    public function test_cart_accepts_quantities_above_two_up_to_available_stock(): void
+    {
+        $product = Product::factory()->create(['stock_quantity' => 10]);
+
+        $this->postJson(route('customer.cart.add'), [
+            'product_id' => $product->id,
+            'quantity' => 5,
+        ])
+            ->assertOk()
+            ->assertJsonPath('cart_count', 5);
+
+        $this->patchJson(route('customer.cart.update', $product), [
+            'quantity' => 8,
+        ])
+            ->assertOk()
+            ->assertJsonPath('quantity', 8)
+            ->assertJsonPath('stock_quantity', 10);
+
+        $this->patchJson(route('customer.cart.update', $product), [
+            'quantity' => 11,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('quantity');
+
+        $this->assertSame(8, session('cart')[$product->id]['quantity']);
+    }
+
     public function test_inactive_product_cannot_be_added_to_the_cart(): void
     {
         $product = Product::factory()->inactive()->create();

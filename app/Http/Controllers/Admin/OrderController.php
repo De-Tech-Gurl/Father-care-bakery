@@ -55,12 +55,7 @@ class OrderController extends Controller
     public function updatePayment(UpdateOrderPaymentRequest $request, Order $order): RedirectResponse
     {
         $status = PaymentStatus::from($request->validated('payment_status'));
-
-        if ($status === PaymentStatus::PAID) {
-            $this->orders->markPaid($order);
-        } else {
-            $order->update(['payment_status' => $status]);
-        }
+        $this->orders->updatePaymentStatus($order, $status);
 
         return back()->with('success', 'Payment status updated.');
     }

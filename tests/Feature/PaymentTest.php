@@ -9,8 +9,10 @@ use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Notifications\BakeryNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class PaymentTest extends TestCase
@@ -114,6 +116,26 @@ class PaymentTest extends TestCase
         $order->refresh();
         $this->assertSame(PaymentStatus::PAID, $order->payment_status);
         $this->assertSame(OrderStatus::CONFIRMED, $order->status);
+    }
+
+    public function test_admin_status_update_emails_only_the_customer_who_owns_the_order(): void
+    {
+        $customer = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $otherCustomer = User::factory()->create();
+        $order = Order::factory()->for($customer)->create();
+        Notification::fake();
+
+        $this->actingAs($admin)
+            ->patch(route('admin.orders.update', $order), [
+                'status' => OrderStatus::PREPARING->value,
+            ])
+            ->assertRedirect();
+
+        Notification::assertSentTo($customer, BakeryNotification::class, fn (BakeryNotification $notification): bool => $notification->type === 'order.status_changed'
+            && $notification->context['status'] === OrderStatus::PREPARING->value);
+        Notification::assertNotSentTo($otherCustomer, BakeryNotification::class);
+        Notification::assertNotSentTo($admin, BakeryNotification::class);
     }
 
     public function test_bank_transfer_order_shows_payment_instructions(): void

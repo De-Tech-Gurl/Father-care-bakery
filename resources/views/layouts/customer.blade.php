@@ -235,7 +235,7 @@
             padding: 10px 0;
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 1200;
             box-shadow: 0 2px 16px rgba(42,28,18,.08);
         }
         .navbar-actions {
@@ -1347,6 +1347,7 @@
             .container { padding-left: 16px; padding-right: 16px; }
         }
     </style>
+    @include('notifications._styles')
     @stack('styles')
 </head>
 <body>
@@ -1378,6 +1379,9 @@
 
             <!-- Always-visible cart + menu on phones -->
             <div class="navbar-actions">
+                @auth
+                    @include('notifications._bell')
+                @endauth
                 <a href="{{ route('customer.cart.index') }}" class="nav-cart-btn" title="Cart" aria-label="Open cart">
                     <i class="ph ph-shopping-bag"></i>
                     <span class="cart-badge cartCount">{{ $cartCount }}</span>
@@ -1416,6 +1420,12 @@
                 </ul>
 
                 <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0 flex-wrap">
+                    @auth
+                        <div class="d-none d-lg-flex">
+                            @include('notifications._bell')
+                        </div>
+                    @endauth
+
                     <a href="{{ route('customer.products.index') }}" class="nav-icon-btn" title="Search" aria-label="Search products">
                         <i class="ph ph-magnifying-glass"></i>
                     </a>
@@ -1485,13 +1495,13 @@
     @if(session('success') || session('error'))
         <div class="container mt-3">
             @if(session('success'))
-                <div class="alert-sage">
+                <div class="alert-sage notification-action-toast" role="status">
                     <i class="ph ph-check-circle"></i>
                     {{ session('success') }}
                 </div>
             @endif
             @if(session('error'))
-                <div class="alert alert-danger rounded-3 border-0 py-2 px-3">
+                <div class="alert alert-danger rounded-3 border-0 py-2 px-3 notification-action-toast" role="alert">
                     <i class="ph ph-x-circle me-2"></i>{{ session('error') }}
                 </div>
             @endif
@@ -1803,6 +1813,7 @@
         }
     </style>
 
+    @include('notifications._polling')
     @stack('scripts')
 </body>
 </html>
