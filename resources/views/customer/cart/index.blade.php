@@ -650,7 +650,10 @@
                     if (data.quantity === 0) {
                         row.remove();
                     } else {
-                        quantity.textContent = data.quantity;
+                        const currentQuantity = Number(data.quantity);
+                        quantity.textContent = currentQuantity;
+                        if (increaseButton) increaseButton.value = String(currentQuantity + 1);
+                        if (decreaseButton) decreaseButton.value = String(currentQuantity - 1);
                     }
                     document.querySelectorAll('[data-cart-subtotal], [data-cart-total]').forEach((element) => {
                         element.textContent = '₦' + Number(data.subtotal).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

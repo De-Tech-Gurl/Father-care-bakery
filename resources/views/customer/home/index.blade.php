@@ -551,13 +551,17 @@
                                     </div>
                                     <p class="product-desc">{{ \Illuminate\Support\Str::limit($product->description, 48) }}</p>
 
-                                    {{-- Star rating (static display, seeded products will have rating) --}}
                                     <div class="product-stars">
-                                        @php $rating = $product->rating ?? 4; @endphp
-                                        @for($i = 1; $i <= 5; $i++)
-                                            <i class="{{ $i <= $rating ? 'ph-fill ph-star star-filled' : 'ph ph-star star-empty' }}"></i>
-                                        @endfor
-                                        <span class="star-count">({{ $product->reviews_count ?? rand(20,150) }})</span>
+                                        @if($product->reviews_count > 0)
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="{{ $i <= round((float) $product->reviews_avg_rating) ? 'ph-fill ph-star star-filled' : 'ph ph-star star-empty' }}"></i>
+                                            @endfor
+                                            <span class="star-count" aria-label="{{ number_format((float) $product->reviews_avg_rating, 1) }} out of 5 stars">
+                                                {{ number_format((float) $product->reviews_avg_rating, 1) }} ({{ $product->reviews_count }})
+                                            </span>
+                                        @else
+                                            <span class="star-count">No reviews yet</span>
+                                        @endif
                                     </div>
 
                                     <div class="product-footer">
@@ -696,11 +700,16 @@
                             <p class="product-desc">{{ \Illuminate\Support\Str::limit($product->description, 48) }}</p>
 
                             <div class="product-stars">
-                                @php $rating = $product->rating ?? 4; @endphp
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i class="{{ $i <= $rating ? 'ph-fill ph-star star-filled' : 'ph ph-star star-empty' }}"></i>
-                                @endfor
-                                <span class="star-count">({{ $product->reviews_count ?? rand(5,80) }})</span>
+                                @if($product->reviews_count > 0)
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="{{ $i <= round((float) $product->reviews_avg_rating) ? 'ph-fill ph-star star-filled' : 'ph ph-star star-empty' }}"></i>
+                                    @endfor
+                                    <span class="star-count" aria-label="{{ number_format((float) $product->reviews_avg_rating, 1) }} out of 5 stars">
+                                        {{ number_format((float) $product->reviews_avg_rating, 1) }} ({{ $product->reviews_count }})
+                                    </span>
+                                @else
+                                    <span class="star-count">No reviews yet</span>
+                                @endif
                             </div>
 
                             <div class="product-footer">

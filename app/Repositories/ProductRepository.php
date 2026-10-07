@@ -18,6 +18,8 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     {
         return $this->model->where('is_active', true)
             ->where('is_featured', true)
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->limit($limit)
             ->get();
     }
@@ -25,6 +27,8 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
     public function getLatest(int $limit = 6): Collection
     {
         return $this->model->where('is_active', true)
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->latest()
             ->limit($limit)
             ->get();

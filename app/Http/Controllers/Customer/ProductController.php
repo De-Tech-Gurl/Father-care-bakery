@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -28,11 +29,23 @@ class ProductController extends Controller
         return view('customer.products.index', compact('products', 'categories'));
     }
 
-    public function show(Product $product): View
+    public function show(Request $request, Product $product): View
     {
         abort_unless($product->is_active, 404);
 
-        $product->load('category');
+        $product->load('category')
+            ->loadAvg('reviews', 'rating')
+            ->loadCount('reviews');
+
+        $reviews = $product->reviews()
+            ->with('user')
+            ->latest()
+            ->paginate(10);
+
+        $customer = $request->user();
+        $myReview = $customer instanceof User && $customer->isCustomer()
+            ? $product->reviews()->whereBelongsTo($customer, 'user')->first()
+            : null;
 
         $related = Product::query()
             ->where('is_active', true)
@@ -41,7 +54,7 @@ class ProductController extends Controller
             ->limit(4)
             ->get();
 
-        return view('customer.products.show', compact('product', 'related'));
+        return view('customer.products.show', compact('product', 'related', 'reviews', 'myReview'));
     }
 
     private function resolveCategoryId(mixed $category): ?int

@@ -16,6 +16,7 @@ use App\Http\Controllers\Customer\HomeController;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\ProductController;
+use App\Http\Controllers\Customer\ProductReviewController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,9 @@ Route::name('customer.')->group(function () {
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+    Route::post('/products/{product:slug}/reviews', [ProductReviewController::class, 'store'])
+        ->middleware('auth')
+        ->name('products.reviews.store');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
     Route::patch('/cart/{product}', [CartController::class, 'update'])->name('cart.update');
