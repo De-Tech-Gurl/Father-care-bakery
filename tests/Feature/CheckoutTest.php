@@ -216,7 +216,7 @@ class CheckoutTest extends TestCase
 
         Log::shouldReceive('error')
             ->times(3)
-            ->with('Unable to queue notification delivery.', \Mockery::type('array'));
+            ->with('Unable to deliver notification.', \Mockery::type('array'));
 
         $response = $this->actingAs($customer)->post(route('customer.checkout.store'), [
             'delivery_type' => DeliveryType::PICKUP->value,

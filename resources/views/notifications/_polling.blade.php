@@ -69,7 +69,8 @@
                 }
             };
 
-            window.setInterval(refreshNotifications, 45000);
+            refreshNotifications();
+            window.setInterval(refreshNotifications, 15000);
 
             document.querySelectorAll('.notification-action-toast').forEach((toast) => {
                 window.setTimeout(() => {

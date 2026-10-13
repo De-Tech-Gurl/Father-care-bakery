@@ -11,8 +11,10 @@ use App\Models\Product;
 use App\Models\User;
 use App\Notifications\BakeryNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class PaymentTest extends TestCase
@@ -136,6 +138,40 @@ class PaymentTest extends TestCase
             && $notification->context['status'] === OrderStatus::PREPARING->value);
         Notification::assertNotSentTo($otherCustomer, BakeryNotification::class);
         Notification::assertNotSentTo($admin, BakeryNotification::class);
+    }
+
+    public function test_admin_order_status_update_is_saved_and_counted_for_the_customer_immediately(): void
+    {
+        $customer = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+        $order = Order::factory()->for($customer)->create([
+            'status' => OrderStatus::PENDING,
+        ]);
+        Queue::fake([SendQueuedNotifications::class]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.orders.update', $order), [
+                'status' => OrderStatus::PREPARING->value,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::PREPARING->value,
+        ]);
+
+        $notification = $customer->notifications()
+            ->where('data->type', 'order.status_changed')
+            ->first();
+
+        $this->assertNotNull($notification);
+        $this->assertSame(OrderStatus::PREPARING->value, $notification->data['context']['status']);
+        Queue::assertPushed(SendQueuedNotifications::class);
+
+        $this->actingAs($customer)
+            ->get(route('customer.orders.show', $order))
+            ->assertSee('Preparing')
+            ->assertSee('1 unread');
     }
 
     public function test_bank_transfer_order_shows_payment_instructions(): void

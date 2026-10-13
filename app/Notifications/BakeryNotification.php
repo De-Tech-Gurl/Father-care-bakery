@@ -12,6 +12,8 @@ class BakeryNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    private bool $mailOnly = false;
+
     /**
      * @param  array<string, mixed>  $context
      */
@@ -26,7 +28,19 @@ class BakeryNotification extends Notification implements ShouldQueue
 
     public function via(User $notifiable): array
     {
-        return $notifiable->notificationChannelsFor($this->type);
+        $channels = $notifiable->notificationChannelsFor($this->type);
+
+        return $this->mailOnly
+            ? array_values(array_intersect($channels, ['mail']))
+            : $channels;
+    }
+
+    public function mailOnly(): static
+    {
+        $notification = clone $this;
+        $notification->mailOnly = true;
+
+        return $notification;
     }
 
     public function toMail(User $notifiable): MailMessage

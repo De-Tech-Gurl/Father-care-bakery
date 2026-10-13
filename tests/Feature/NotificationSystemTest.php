@@ -12,8 +12,10 @@ use App\Services\InventoryService;
 use Database\Seeders\NotificationDemoSeeder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -177,6 +179,34 @@ class NotificationSystemTest extends TestCase
 
         $this->assertNotNull($unreadNotification->fresh()->read_at);
         $this->assertNull($otherUnreadNotification->fresh()->read_at);
+    }
+
+    public function test_new_order_alert_is_counted_on_the_admin_dashboard_before_mail_queue_runs(): void
+    {
+        $admin = User::factory()->admin()->create();
+        User::factory()->staff()->create();
+        $admin->unreadNotifications()->update(['read_at' => now()]);
+        Queue::fake([SendQueuedNotifications::class]);
+
+        app(DispatchNotification::class)->handle(new NotificationRequested(
+            'order.placed',
+            'New order placed',
+            'ORD-TEST was placed.',
+            'staff',
+            url: route('admin.orders.index'),
+        ));
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => $admin->getMorphClass(),
+            'notifiable_id' => $admin->id,
+            'data->type' => 'order.placed',
+        ]);
+
+        Queue::assertPushed(SendQueuedNotifications::class);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertSee('1 unread');
     }
 
     public function test_notification_open_redirects_to_live_products_and_falls_back_for_deleted_products(): void
