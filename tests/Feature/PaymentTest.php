@@ -120,6 +120,31 @@ class PaymentTest extends TestCase
         $this->assertSame(OrderStatus::CONFIRMED, $order->status);
     }
 
+    public function test_admin_order_pages_render_order_details_and_management_actions(): void
+    {
+        $customer = User::factory()->create(['name' => 'Order Page Customer']);
+        $admin = User::factory()->admin()->create();
+        $order = Order::factory()->for($customer)->create([
+            'order_number' => 'FCB-ORDER-PAGE',
+            'status' => OrderStatus::PREPARING,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.orders.index'))
+            ->assertSee('Order list')
+            ->assertSee('FCB-ORDER-PAGE')
+            ->assertSee('Order Page Customer');
+
+        $this->actingAs($admin)
+            ->get(route('admin.orders.show', $order))
+            ->assertSee('Items ordered')
+            ->assertSee('Customer & delivery', false)
+            ->assertSee('Update order status')
+            ->assertSee('Save status')
+            ->assertSee('Update payment')
+            ->assertSee('Save payment');
+    }
+
     public function test_admin_status_update_emails_only_the_customer_who_owns_the_order(): void
     {
         $customer = User::factory()->create();

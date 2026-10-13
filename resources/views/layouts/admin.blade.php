@@ -268,6 +268,8 @@
         .admin-wrapper {
             margin-left: var(--sidebar-w);
             flex: 1;
+            min-width: 0;
+            width: calc(100% - var(--sidebar-w));
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -326,7 +328,7 @@
         }
 
         /* Content */
-        .admin-main { flex: 1; padding: 30px 32px; }
+        .admin-main { flex: 1; width: 100%; min-width: 0; padding: 30px 32px; }
 
         /* ═══════════════════════════════════════════════════════
            SHARED SURFACES & CARDS (White + Warm Wheat Border)
@@ -665,7 +667,7 @@
             .sidebar-toggle-btn { display: inline-flex; }
             .admin-sidebar { transform: translateX(-100%); }
             .admin-sidebar.open { transform: translateX(0); }
-            .admin-wrapper { margin-left: 0; }
+            .admin-wrapper { width: 100%; margin-left: 0; }
             .admin-header { padding: 0 16px; }
             .admin-main { padding: 18px 16px; }
             .admin-header-badge { display: none; }
